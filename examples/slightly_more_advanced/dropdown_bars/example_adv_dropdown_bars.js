@@ -8,11 +8,17 @@ let viewMode = 'normal';
 let dropdown;
 
 function preload() {
-  data = tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
+  if (typeof p5.prototype.registerPreloadMethod === 'function') {
+    data = tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
+  }
 }
 
-function setup() {
+async function setup() {
   createCanvas(1200, 700);
+
+  if (!data) {
+    data = await tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
+  }
   
   // Extract time of day from Time Occurred
   data = data.addColumn('Hour', (row) => {
@@ -86,7 +92,7 @@ function updateDropdownPosition() {
   if (!dropdown) return;
   
   // Get canvas position
-  let canvasElement = canvas || document.querySelector('canvas');
+  let canvasElement = document.querySelector('canvas');
   let rect = canvasElement ? canvasElement.getBoundingClientRect() : { left: 0, top: 0 };
   
   // Responsive styling

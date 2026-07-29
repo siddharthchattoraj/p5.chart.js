@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>p5.chart ESM test</title>
+  <script src="/node_modules/p5-v2/lib/p5.min.js"></script>
+</head>
+<body>
+  <main id="mount"></main>
+  <script type="module">
+    import p5ChartAddon, { installP5ChartAddon } from '/dist/p5.chart.esm.mjs';
+
+    window.__errors = [];
+    window.addEventListener('error', event => {
+      window.__errors.push(String(event.error || event.message));
+    });
+    window.addEventListener('unhandledrejection', event => {
+      window.__errors.push(String(event.reason));
+    });
+    window.__addonExports = {
+      default: typeof p5ChartAddon,
+      installer: typeof installP5ChartAddon
+    };
+    installP5ChartAddon(p5);
+    window.__instance = new p5(p => {
+      p.setup = function() {
+        p.createCanvas(320, 220);
+      };
+      p.draw = function() {
+        p.bar([
+          { category: 'A', value: 10 },
+          { category: 'B', value: 20 }
+        ], {
+          x: 'category',
+          y: 'value',
+          title: 'ESM registration'
+        });
+        if (p.frameCount > 2) {
+          p.noLoop();
+          window.__ready = true;
+        }
+      };
+    }, document.getElementById('mount'));
+  </script>
+</body>
+</html>

@@ -24,7 +24,7 @@
 
 \title{\textbf{p5.chart.js Library Documentation}\\ \large Reference Manual of Methods Exposed to the User}
 \author{Siddharth Chattoraj}
-\date{December 12, 2025}
+\date{July 28, 2026}
 
 \begin{document}
 
@@ -32,12 +32,12 @@
 \tableofcontents
 \newpage
 
-\section{Global Configuration \& State}
+\section{Configuration \& State}
 
-The library attaches to the \texttt{p5.prototype}. The following global properties and methods affect the overall behavior of the library.
+The browser build installs a version-neutral add-on after p5 loads. Public methods are available in global mode and on each instance. Mutable tooltip, input, and geo state belongs to the current p5 instance.
 
 \subsection{Global Properties}
-These properties are accessible via \texttt{p5.prototype.chart}.
+Shared defaults are accessible through \texttt{p5.prototype.chart}. Instance overrides and mutable state are accessible through \texttt{p.chart}.
 
 \begin{longtable}{p{5cm} p{10cm}}
 \toprule
@@ -48,17 +48,17 @@ These properties are accessible via \texttt{p5.prototype.chart}.
 \texttt{chart.defaultSubtitle} & Global default subtitle (Default: \texttt{null}). If a chart does not provide \texttt{options.subtitle}, this value is used. \\
 \texttt{chart.nanPolicy} & Default policy for handling NaN values. Defaults to \texttt{warn}. Options: \texttt{warn}, \texttt{silent}, \texttt{strict}. \\
 \texttt{chart.autoFitCanvas} & Boolean (Default: \texttt{true}). If true, resizes the p5 canvas to match the CSS display size to prevent distortion. \\
-\texttt{chart.inputs} & Internal cache for DOM elements (e.g., Table search inputs). \\
-\texttt{chart.hoverState} & Object storing global tooltip state (\texttt{active}, \texttt{x}, \texttt{y}, \texttt{content}, \texttt{tooltipScale}, \texttt{tooltipTextSize}, \texttt{tooltipFont}). \\
+\texttt{chart.inputs} & Instance-owned cache for DOM elements (e.g., Table search inputs). \\
+\texttt{chart.hoverState} & Instance-owned tooltip state (\texttt{active}, \texttt{x}, \texttt{y}, \texttt{content}, \texttt{tooltipScale}, \texttt{tooltipTextSize}, \texttt{tooltipFont}). \\
 \bottomrule
 \end{longtable}
 
-\subsection{Preload Methods}
-These methods are registered to be used within the p5.js \texttt{preload()} function.
+\subsection{Loading Methods}
+Loading follows the capabilities of the installed p5 version.
 
 \begin{description}
-    \item[\texttt{loadDataFrame(path, callback)}] \hfill \\
-    Loads a CSV file and converts it to a DataFrame. Returns a proxy object that mimics the Table/DataFrame structure.
+    \item[\texttt{loadDataFrame(path, success, error)}] \hfill \\
+    Loads a CSV file and converts it to a DataFrame. On p5.js 2.x it returns a Promise and is intended for \texttt{async setup()}. On p5.js 1.x it returns a DataFrame placeholder for existing \texttt{preload()} usage. Optional callbacks work in both versions.
 \end{description}
 
 \section{Data Structure: DataFrame}
@@ -66,7 +66,7 @@ These methods are registered to be used within the p5.js \texttt{preload()} func
 The \texttt{DataFrame} class is the core structure for data manipulation.
 
 \subsection{Constructor}
-\texttt{new p5.prototype.chart.DataFrame(data, [columns])}
+\texttt{new p5.prototype.chart.DataFrame(data, [columns])} or \texttt{new p.DataFrame(data, [columns])}
 \begin{itemize}
     \item \textbf{data}: Array of objects OR Array of Arrays.
     \item \textbf{columns}: Array of strings (required if \texttt{data} is an Array of Arrays).
@@ -117,12 +117,12 @@ The \texttt{DataFrame} class is the core structure for data manipulation.
 \subsection{Helper Functions}
 \begin{description}
     \item[\texttt{createDataFrame(data, cols)}] Alias for instantiating \texttt{new DataFrame}.
-    \item[\texttt{tableToDataFrame(pathOrTable, type, options)}] Converts a p5.Table or loads a file into a DataFrame.
+    \item[\texttt{tableToDataFrame(pathOrTable, type, options)}] Converts a p5.Table synchronously in both versions. A path follows the version-specific loading behavior of \texttt{loadDataFrame()} and returns a Promise on p5.js 2.x.
 \end{description}
 
 \section{Chart Visualization Methods}
 
-All chart methods follow the signature \texttt{p5.method(data, options)}. The \texttt{data} argument accepts a DataFrame, an Array of objects, or a p5.Table. The \texttt{options} argument is a key--alue object that describes how the chart should look and behave.
+All chart methods follow the signature \texttt{method(data, options)} in global mode or \texttt{p.method(data, options)} in instance mode. The \texttt{data} argument accepts a DataFrame, an Array of objects, or a p5.Table. The \texttt{options} argument is a key--value object that describes how the chart should look and behave.
 
 \subsection{Universal Layout \& Metadata Options}
 The following options apply to \textbf{all} chart types (Bar, Pie, Series, Scatter, Hist, Geo, Table).
@@ -312,7 +312,7 @@ Applies to Cartesian charts (Bar, Series, Scatter, Hist, Table(search input)).
 
 \subsection{Chart-Specific: Table}
 \textbf{Method:} \texttt{table(data, options)} \\
-\textbf{NaN Behavior:} Displays "—" in gray.
+\textbf{NaN Behavior:} Displays \texttt{\textemdash} in gray.
 
 \begin{longtable}{p{5cm} p{10cm}}
 \toprule

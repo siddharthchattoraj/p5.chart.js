@@ -1,91 +1,193 @@
 # p5.chart.js
 
-**Interactive, Mobile-Responsive Data Visualization Library for p5.js**
+Interactive, mobile-responsive data visualization for p5.js.
 
-*By: Siddharth Chattoraj*
+p5.chart provides one build for p5.js 1.x and 2.x. The chart API is the same in global and instance mode, and existing script-tag sketches can continue loading `p5.chart.js` after p5.
 
-## Installation
+## Compatibility
 
-You only need to use **one** of the following methods:
+The supported peer range is **p5.js >=1.10.0 <3**.
 
-### 1. NPM
+| p5.js | Script tag | Instance mode | Data loading | Tested release |
+| --- | --- | --- | --- | --- |
+| 2.x | Yes | Yes | Promise-based, intended for `async setup()` | 2.3.1 |
+| 1.x | Yes | Yes | `preload()` placeholder and callbacks | 1.11.13 |
 
-Install via npm:
+The browser test suite runs locally against both exact versions. It does not require p5 compatibility add-ons or live map tiles.
+
+## Browser setup
+
+Load p5 first, then p5.chart, then the sketch. p5.js 2.x is shown first:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/p5@2.3.1/lib/p5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5.chart/p5.chart.js"></script>
+<script src="sketch.js"></script>
+```
+
+For p5.js 1.x, only the p5 script changes:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/p5@1.11.13/lib/p5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5.chart/p5.chart.js"></script>
+<script src="sketch.js"></script>
+```
+
+The readable build is `p5.chart.js`. The minified browser build is `dist/p5.chart.min.js`.
+
+## Global mode
+
+```js
+function setup() {
+  createCanvas(800, 500);
+}
+
+function draw() {
+  background(255);
+  bar(
+    [
+      { category: 'A', value: 12 },
+      { category: 'B', value: 19 }
+    ],
+    { x: 'category', y: 'value', title: 'Example' }
+  );
+}
+```
+
+## Instance mode
+
+```js
+const sketch = p => {
+  const data = p.createDataFrame([
+    { category: 'A', value: 12 },
+    { category: 'B', value: 19 }
+  ]);
+
+  p.setup = () => {
+    p.createCanvas(800, 500);
+  };
+
+  p.draw = () => {
+    p.background(255);
+    p.bar(data, { x: 'category', y: 'value' });
+  };
+};
+
+new p5(sketch);
+```
+
+Mutable hover, table-input, geo, and cleanup state belongs to each sketch instance. Defaults such as `p5.prototype.chart.palette`, `defaultSubtitle`, `defaultTooltipColumns`, `nanPolicy`, and `autoFitCanvas` are intentionally shared and remain configurable. An instance can override a setting through `p.chart` without changing another instance.
+
+## npm and ESM
 
 ```sh
-npm install p5.chart
+npm install p5 p5.chart
 ```
 
-Then create an `html` file like this:
+The package exports an ESM add-on and keeps the root browser artifact for existing npm and CDN paths:
 
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-    <script src="node_modules/p5.chart/p5.chart.js"></script>
-    <script src="sketch.js"></script>
-  </head>
-  <body></body>
-</html>
+```js
+import p5 from 'p5';
+import { installP5ChartAddon } from 'p5.chart';
+
+installP5ChartAddon(p5);
+
+new p5(p => {
+  p.setup = () => p.createCanvas(800, 500);
+  p.draw = () => {
+    p.background(255);
+    p.pie(
+      [
+        { label: 'A', value: 40 },
+        { label: 'B', value: 60 }
+      ],
+      { label: 'label', value: 'value', donut: true }
+    );
+  };
+});
 ```
 
-You can now create a `sketch.js` file to build your charts.
+Advanced integrations can import the default `p5ChartAddon` function and pass it to `p5.registerAddon()` directly. `installP5ChartAddon()` is the version-neutral entry point and is safe to call more than once.
 
-### 2. CDN
+## Loading DataFrames
 
-Create an `html` file like this (include p5.js first, then p5.chart.js):
+In p5.js 2.x, `loadDataFrame()` and a path passed to `tableToDataFrame()` return `Promise<DataFrame>`:
 
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5.chart/p5.chart.js"></script>
-    <script src="sketch.js"></script>
-  </head>
-  <body></body>
-</html>
+```js
+let data;
+
+async function setup() {
+  createCanvas(800, 500);
+  data = await loadDataFrame('data.csv');
+}
 ```
 
-You can now create a `sketch.js` file to build your charts.
+Optional success and error callbacks are also accepted:
 
-### 3. Local File
-
-Download `p5.chart.js` and `libraries/p5.min.js`, place them in your project folder, and create an `html` file like this:
-
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <script src="p5.min.js"></script>
-    <script src="p5.chart.js"></script>
-    <script src="sketch.js"></script>
-  </head>
-  <body></body>
-</html>
+```js
+const data = await loadDataFrame(
+  'data.csv',
+  df => console.log(df.rows.length),
+  error => console.error(error)
+);
 ```
 
-You can now create a `sketch.js` file to build your charts.
+In p5.js 1.x, existing preload usage remains synchronous-looking. The returned DataFrame placeholder is populated before `setup()`:
 
-### 4. Clone or Download the Repo
+```js
+let data;
 
-Clone or download this repository and start experimenting directly in `sketch.js`. This option is useful for quickly exploring examples or modifying charts without setting up a separate project.
+function preload() {
+  data = loadDataFrame('data.csv');
+}
 
-## Directory
+function setup() {
+  createCanvas(800, 500);
+  console.log(data.rows.length);
+}
+```
 
-`documentation`: Folder containing comprehensive methods exposed to user in both .pdf and .tex form.
+Legacy callbacks remain supported:
 
-`examples`: Folder containing examples for each of the charts
+```js
+function preload() {
+  loadDataFrame('data.csv', df => {
+    console.log(df.rows.length);
+  });
+}
+```
 
-• `base`: Basic chart examples relying almost entirely on the library
+Passing a `p5.Table` to `tableToDataFrame()` is synchronous in both p5 generations.
 
-• `slightly_more_advanced`: More complex examples, including versions that are integrated with the greater p5.js ecosystem
+## Public API
 
-`libraries`: p5.js is located here
+The maintained API includes:
 
-`logo`: Contains the logo for submission to the Processing Foundation
+- configuration and palette through `chart`
+- `DataFrame`, `createDataFrame()`, `loadDataFrame()`, and `tableToDataFrame()`
+- `bar()`, `pie()` with donut options, `series()`, `scatter()`, `hist()`, `table()`, and `geo()`
+- `toPNG()` and `toCSV()`
 
-`p5.chart.js`: Library
+All existing chart options remain available. See [documentation/p5_chart_js_documentation.tex](documentation/p5_chart_js_documentation.tex) for the maintained full option reference.
 
-`sketch.js`: Build your own charts in this template file
+## Examples
+
+Every example loads a pinned p5 release through `libraries/p5-version.js`:
+
+- add `?p5=2` to use p5.js 2.3.1, which is the default
+- add `?p5=1` to use p5.js 1.11.13
+
+The basic and advanced example folders retain the original sketches and visual design. p5.sound is not loaded because p5.chart does not require it.
+
+## Development
+
+```sh
+pnpm install
+pnpm build
+pnpm lint
+pnpm test
+```
+
+`pnpm build` reproducibly generates the readable browser build, minified browser build, and ESM build from `src/p5.chart.js`. Do not edit generated artifacts directly.
+
+See [CHANGELOG.md](CHANGELOG.md) and [MIGRATION.md](MIGRATION.md) for the compatibility changes.

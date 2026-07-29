@@ -3,11 +3,64 @@
   "version": "0.1.0",
   "description": "An interactive, mobile-responsive data visualization library for p5.js",
   "main": "p5.chart.js",
-  "keywords": ["p5", "p5js", "charts", "data-visualization"],
+  "module": "dist/p5.chart.esm.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/p5.chart.esm.mjs",
+      "require": "./p5.chart.js",
+      "default": "./p5.chart.js"
+    },
+    "./p5.chart.js": "./p5.chart.js",
+    "./p5.chart.min.js": "./dist/p5.chart.min.js"
+  },
+  "unpkg": "dist/p5.chart.min.js",
+  "jsdelivr": "dist/p5.chart.min.js",
+  "files": [
+    "dist",
+    "src",
+    "p5.chart.js",
+    "documentation/p5_chart_js_documentation.tex",
+    "examples",
+    "libraries/p5-version.js",
+    "index.html",
+    "sketch.js",
+    "style.css",
+    "README.md",
+    "CHANGELOG.md",
+    "MIGRATION.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup --config",
+    "clean": "node scripts/clean.mjs",
+    "lint": "eslint src tests scripts rollup.config.mjs playwright.config.mjs",
+    "test": "playwright test"
+  },
+  "keywords": [
+    "p5",
+    "p5js",
+    "charts",
+    "data-visualization"
+  ],
   "author": "Siddharth Chattoraj",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tadavoila/p5.chart.js"
+    "url": "https://github.com/siddharthchattoraj/p5.chart.js"
+  },
+  "bugs": {
+    "url": "https://github.com/siddharthchattoraj/p5.chart.js/issues"
+  },
+  "homepage": "https://github.com/siddharthchattoraj/p5.chart.js#readme",
+  "peerDependencies": {
+    "p5": ">=1.10.0 <3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^9.32.0",
+    "p5-v1": "npm:p5@1.11.13",
+    "p5-v2": "npm:p5@2.3.1",
+    "rollup": "^4.46.2"
   }
 }

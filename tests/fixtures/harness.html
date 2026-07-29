@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>p5.chart test harness</title>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    #mount { width: 800px; }
+    canvas { display: block; }
+  </style>
+  <script>
+    (() => {
+      const bootParams = new URLSearchParams(location.search);
+      const bootVersion = bootParams.get('version') === '1' ? '1' : '2';
+      const p5Path = bootVersion === '1'
+        ? '/node_modules/p5-v1/lib/p5.min.js'
+        : '/node_modules/p5-v2/lib/p5.min.js';
+      document.write(`<script src="${p5Path}"><\/script>`);
+      document.write('<script src="/p5.chart.js"><\/script>');
+    })();
+  </script>
+</head>
+<body>
+  <main id="mount"></main>
+  <script src="/tests/fixtures/harness.js"></script>
+</body>
+</html>

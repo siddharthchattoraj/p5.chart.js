@@ -1,10 +1,9 @@
 /* sketch.js 
 - Template file to create your own charts with p5.chart.js */
 
-
 // Setup function - runs once at the start
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(850, 400);
   
   // Create chart here
 }
