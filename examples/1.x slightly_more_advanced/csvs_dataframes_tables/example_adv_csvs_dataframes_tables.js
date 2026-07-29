@@ -3,17 +3,11 @@ let data;
 let insightTable;
 
 function preload() {
-  if (typeof p5.prototype.registerPreloadMethod === 'function') {
-    data = tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
-  }
+  data = tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
 }
 
-async function setup() {
+function setup() {
   createCanvas(1200, 600);
-
-  if (!data) {
-    data = await tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
-  }
 
   // Group by area name and aggregate multiple stats
   let areaStats = data.group('Area Name', {

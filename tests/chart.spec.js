@@ -9,10 +9,23 @@ const versions = [
   { major: '2', exact: '2.3.1' }
 ];
 const charts = ['bar', 'pie', 'donut', 'series', 'scatter', 'hist', 'table', 'geo'];
-const exampleFiles = readdirSync('examples', { recursive: true })
-  .filter(file => file.endsWith('.html'))
-  .map(file => `/examples/${file.replaceAll('\\', '/')}`)
-  .sort();
+
+function listExamples(directory) {
+  return readdirSync(directory, { recursive: true })
+    .filter(file => file.endsWith('.html'))
+    .map(file => `/${directory}/${file.replaceAll('\\', '/')}`);
+}
+
+const exampleFiles = {
+  1: [
+    ...listExamples('examples/base'),
+    ...listExamples('examples/1.x slightly_more_advanced')
+  ].sort(),
+  2: [
+    ...listExamples('examples/base'),
+    ...listExamples('examples/2.x slightly_more_advanced')
+  ].sort()
+};
 const tile = readFileSync('tests/fixtures/map-tile.png');
 const require = createRequire(resolve('tests/chart.spec.js'));
 
@@ -628,11 +641,16 @@ for (const version of versions) {
       });
     });
 
-    for (const file of exampleFiles) {
-      await page.goto(`${file}?p5=${version.major}`);
+    for (const file of exampleFiles[version.major]) {
+      const url = file.includes('slightly_more_advanced')
+        ? file
+        : `${file}?p5=${version.major}`;
+      await page.goto(url);
       await expect(page.locator('canvas')).toHaveCount(1, { timeout: 10000 });
       await page.waitForTimeout(file.includes('slightly_more_advanced') ? 750 : 200);
+      const loadedVersion = await page.evaluate(() => window.p5ChartP5Version);
       const errors = await page.evaluate(() => window.__exampleErrors);
+      expect(loadedVersion, file).toBe(version.exact);
       expect(errors, file).toEqual([]);
     }
   });

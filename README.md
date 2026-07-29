@@ -172,12 +172,17 @@ All existing chart options remain available. See [documentation/p5_chart_js_docu
 
 ## Examples
 
-Every example loads a pinned p5 release through `libraries/p5-version.js`:
+The basic sketches in `examples/base` are shared by both p5 generations:
 
 - add `?p5=2` to use p5.js 2.3.1, which is the default
 - add `?p5=1` to use p5.js 1.11.13
 
-The basic and advanced example folders retain the original sketches and visual design. p5.sound is not loaded because p5.chart does not require it.
+Data-loading examples are separated because the recommended loading syntax differs:
+
+- `examples/1.x slightly_more_advanced` uses `preload()`
+- `examples/2.x slightly_more_advanced` uses `await` inside `async setup()` and does not define `preload()`
+
+Each advanced folder loads its matching pinned p5 release automatically. All examples retain the original visual design. p5.sound is not loaded because p5.chart does not require it.
 
 ## Development
 

@@ -16,6 +16,8 @@ Keep loading p5 before `p5.chart.js`. No chart-code changes are required when mo
 
 The official p5 preload compatibility add-on is not required.
 
+The advanced examples mirror this distinction: the p5.js 1.x folder uses `preload()`, while the p5.js 2.x folder loads data only with `await` inside `async setup()`. Basic examples remain shared because they do not load asynchronous assets.
+
 ## Registration
 
 The browser build installs itself when loaded after p5. ESM consumers can call `installP5ChartAddon(p5)` or pass the default export to `p5.registerAddon()`.

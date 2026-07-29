@@ -8,17 +8,11 @@ let viewMode = 'normal';
 let dropdown;
 
 function preload() {
-  if (typeof p5.prototype.registerPreloadMethod === 'function') {
-    data = tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
-  }
+  data = tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
 }
 
-async function setup() {
+function setup() {
   createCanvas(1200, 700);
-
-  if (!data) {
-    data = await tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
-  }
 
   // Extract time of day from Time Occurred
   data = data.addColumn('Hour', (row) => {
@@ -35,6 +29,34 @@ async function setup() {
     if (age < 50) return '35-49';
     if (age < 65) return '50-64';
     return '65+';
+  });
+
+  // Create descent groups
+  // Normalize victim descent values so blank entries become 'Unknown'
+  data = data.addColumn('Descent Group', (row) => {
+    let descent = String(row['Victim Descent'] || '').trim();
+    let codes = {
+      'A': 'Other Asian',
+      'B': 'Black',
+      'C': 'Chinese',
+      'D': 'Cambodian',
+      'F': 'Filipino',
+      'G': 'Guamanian',
+      'H': 'Hispanic/Latin/Mexican',
+      'I': 'American Indian/Alaskan Native',
+      'J': 'Japanese',
+      'K': 'Korean',
+      'L': 'Laotian',
+      'O': 'Other',
+      'P': 'Pacific Islander',
+      'S': 'Samoan',
+      'U': 'Hawaiian',
+      'V': 'Vietnamese',
+      'W': 'White',
+      'X': 'Unknown',
+      'Z': 'Asian Indian'
+    };
+    return codes[descent] || (descent ? descent : 'Unknown');
   });
 
   // Sort by Total Incidents descending and take top 10 for clarity
@@ -101,31 +123,17 @@ function draw() {
 
 function drawNormalView() {
   // Group by victim descent and analyze demographic distribution
-  let descentData = data.group('Victim Descent', { 'Date Reported': 'count' })
+  let descentData = data.group('Descent Group', { 'Date Reported': 'count' })
     .rename('Date Reported', 'Incidents')
-    .sort('Incidents', 'descending')
-    .head(8);  // Top 8 descent categories
+    .sort('Incidents', 'descending');
 
-  // Add full names
-  descentData = descentData.addColumn('Category', (row) => {
-    let codes = {
-      'H': 'Hispanic/Latino',
-      'W': 'White',
-      'B': 'Black',
-      'O': 'Other',
-      'A': 'Asian',
-      'X': 'Unknown',
-      'F': 'Filipino',
-      'K': 'Korean'
-    };
-    return codes[row['Victim Descent']] || row['Victim Descent'];
-  });
+  descentData = descentData.addColumn('Category', (row) => row['Descent Group']);
 
   bar(descentData, {
     x: 'Category',
     y: 'Incidents',
     title: 'LA Traffic Incidents by Victim Demographics',
-    subtitle: 'Distribution across different demographic groups (Top 8)',
+    subtitle: 'Distribution across different demographic groups',
     xLabel: 'Demographic Category',
     yLabel: 'Number of Incidents',
     color: '#E76F51',

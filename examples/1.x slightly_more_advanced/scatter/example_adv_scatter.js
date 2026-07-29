@@ -5,17 +5,11 @@ let data;
 let scatterData;
 
 function preload() {
-  if (typeof p5.prototype.registerPreloadMethod === 'function') {
-    data = tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
-  }
+  data = tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
 }
 
-async function setup() {
+function setup() {
   createCanvas(1200, 700);
-
-  if (!data) {
-    data = await tableToDataFrame('../la_traffic_data.csv', 'csv', 'header');
-  }
 
   // Extract hour from Time Occurred
   data = data.addColumn('Hour', (row) => {
